@@ -9,7 +9,7 @@ const databasePath = path.join(__dirname, "twitterClone.db");
 const app = express();
 app.use(express.json());
 let database = null;
-const initializeDbAndServer = async () => {
+const initializeDBAndServer = async () => {
   try {
     database = await open({
       filename: databasePath,
@@ -24,7 +24,7 @@ const initializeDbAndServer = async () => {
   }
 };
 
-initializeDbAndServer();
+initializeDBAndServer();
 
 const getFollowingPeopleIdsOfUser = async(username) => {
     const getTheFollowingPeopleQuery = `
@@ -85,10 +85,10 @@ const tweetAccessVerification = async(request, response, next) => {
 
 app.post("/register/", async(request, response) => {
     const {username, password, name, gender} = request.body;
-    const getUserQuery = `SELECT * FROM user WHERE username = '${username}';`;
-    const userDbDetails = await database.get(getUserQuery);
+    const getUserQuery = `SELECT * FROM user WHERE username = '${username}'`;
+    const userDBDetails = await database.get(getUserQuery);
 
-    if(userDbDetails !== undefined) {
+    if(userDBDetails !== undefined) {
         response.status(400);
         response.send("User already exists");
     }
@@ -110,7 +110,7 @@ app.post("/register/", async(request, response) => {
 });
 
 app.post("/login/", async(request, response) => {
-    const {username, password, name, gender} = request.body;
+    const {username, password} = request.body;
     const getUserQuery = `SELECT * FROM user WHERE username = '${username}';`;
     const userDbDetails = await database.get(getUserQuery);
 
@@ -151,10 +151,10 @@ app.get("/user/tweets/feed/", authentication, async(request, response) => {
 
 app.get("/user/following/", authentication, async(request, response) => {
     const {username, userId} = request;
-    const getFollowingUserQuery = `SELECT name FROM follower
+    const getFollowingUsersQuery = `SELECT name FROM follower
     INNER JOIN user ON user.user_id = follower.following_user_id
     WHERE follower_user_id = '${userId}';`;
-    const followingPeople = await database.all(getFollowingUserQuery);
+    const followingPeople = await database.all(getFollowingUsersQuery);
     response.send(followingPeople);
 });
 
@@ -167,7 +167,7 @@ app.get("/user/followers/", authentication, async(request, response) => {
     response.send(followers);
 });
 
-app.get("/tweets/tweetId/", authentication, tweetAccessVerification, async(request, response) => {
+app.get("/tweets/:tweetId/", authentication, tweetAccessVerification, async(request, response) => {
     const {username, userId} = request;
     const {tweetId} = request.params;
     const getTweetQuery = `SELECT tweet,
@@ -182,7 +182,7 @@ app.get("/tweets/tweetId/", authentication, tweetAccessVerification, async(reque
 }
 );
 
-app.get("/tweets/tweetId/likes/", authentication, tweetAccessVerification, async(request, response) => {
+app.get("/tweets/:tweetId/likes/", authentication, tweetAccessVerification, async(request, response) => {
 
     const {tweetId} = request.params;
     const getLikesQuery = `SELECT username
@@ -194,7 +194,7 @@ app.get("/tweets/tweetId/likes/", authentication, tweetAccessVerification, async
 }
 );
 
-app.get("/tweets/tweetId/replies/", authentication, tweetAccessVerification, async(request, response) => {
+app.get("/tweets/:tweetId/replies/", authentication, tweetAccessVerification, async(request, response) => {
 
     const {tweetId} = request.params;
     const getRepliedQuery = `SELECT name, reply
